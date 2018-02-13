@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: Converts CloudFront access logs to CloudWatch metrics    
+
+Resources:   
+  LogToWatch:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      Runtime: python3.6
+      Timeout: 300
+      Policies: AmazonS3ReadOnlyAccess
+      Events:
+        S3CreateObject:
+          Type: S3
+          Properties:
+            Bucket: 
+              Ref: TargetBucket
+            Events:
+              - 's3:ObjectCreated:Put'
+  TargetBucket:
+    Type: AWS::S3::Bucket
