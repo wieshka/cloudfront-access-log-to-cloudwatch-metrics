@@ -12,12 +12,15 @@ Resources:
       Timeout: 300
       Policies: AmazonS3ReadOnlyAccess
       Events:
-        S3CreateObject:
+        S3FileListener:
           Type: S3
           Properties:
-            Bucket: 
-              Ref: TargetBucket
-            Events:
-              - 's3:ObjectCreated:Put'
+            Bucket: !Ref TargetBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: '.gz'
   TargetBucket:
     Type: AWS::S3::Bucket
