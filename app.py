@@ -87,5 +87,4 @@ def lambda_handler(event, context):
     key = s3data["object"]["key"]
     bucket = s3data["bucket"]["name"]
     result = parse_log_file(key, bucket)
-
     return result

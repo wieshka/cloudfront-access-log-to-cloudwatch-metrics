@@ -3,7 +3,10 @@ Transform: AWS::Serverless-2016-10-31
 
 Description: Converts CloudFront access logs to CloudWatch metrics    
 
-Resources:   
+Resources:
+  TargetBucket:
+    Type: AWS::S3::Bucket
+    
   LogToWatch:
     Type: AWS::Serverless::Function
     Properties:
@@ -22,5 +25,3 @@ Resources:
                 Rules:
                   - Name: suffix
                     Value: '.gz'
-  TargetBucket:
-    Type: AWS::S3::Bucket
