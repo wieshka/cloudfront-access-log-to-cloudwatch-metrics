@@ -8,8 +8,8 @@ As CloudFront offers to push it's accesss logs to S3 bucket of your choise, a li
 
 Contents
 ----
-- app.py - little & easy to extend Lambda function taking access logs as input and pushing per line entries to CloudWatch
-- sam.yml - Serverless Application Model template, head to their doc to get started with deployment.
+- app.py - little & easy to extend [Lambda](https://aws.amazon.com/lambda/) function taking access logs as input and pushing per line entries to CloudWatch
+- template.yml - [Serverless Application Model](https://github.com/awslabs/serverless-application-model) template file, works with [AWS SAM Local](https://github.com/awslabs/aws-sam-local/).
 
 Features
 ----
@@ -36,3 +36,12 @@ Seeing is believing
 ![Screenshot from Grafana](screenshot.png)
 ![Screenshot from CloudWatch metrics](screenshot2.png)
 - normally I observe 5-15 min floating delay for data with this approach
+
+
+Testing locally:
+----
+- you will need [AWS SAM Local](https://github.com/awslabs/aws-sam-local/);
+- `sam local generate-event s3 > event.json`;
+- modify your event.json to match existing S3 bucket with actual access log file key;
+- `sam local invoke -e event.json`;
+- All set!
