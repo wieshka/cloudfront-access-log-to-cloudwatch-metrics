@@ -33,5 +33,6 @@ Note
 
 Seeing is believing
 ----
-![Screenshot](screenshot.png)
+![Screenshot from Grafana](screenshot.png)
+![Screenshot from CloudWatch metrics](screenshot2.png)
 - normally I observe 5-15 min floating delay for data with this approach
