@@ -30,3 +30,8 @@ Note
 - It is expected, that once this stack is deployed, CloudFront access logs should be configured to be pushed to created S3 Bucket. 
 - Consider need to improve performance of this Lambda otherwise for very busy CloudFront distributions, you might reach timeout. Current performance is about 0.83 lines of CSV per ms aka 25 000 lines takes ~30 seconds of Lambda exec time.
 - Mind quite allowing policies given to Lambda, in more strict environment that should be modified.
+
+Seeing is believing
+----
+![Screenshot](screenshot.png)
+- normally I observe 5-15 min floating delay for data with this approach
