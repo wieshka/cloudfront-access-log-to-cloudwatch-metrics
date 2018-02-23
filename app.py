@@ -32,7 +32,7 @@ CSV_FIELDS = (
     'x-edge-response-result-type', # How CloudFront classified the response just before returning the response to the viewer. Hit / RefreshHit / Miss / LimitExceeded / CapacityExceeded / Error / Redirect
     'cs-protocol-version', # HTTP/0.9, HTTP/1.0, HTTP/1.1, and HTTP/2.0.
     'fle-status', # When field-level encryption is configured for a distribution, a code that indicates whether the request body was successfully processed.
-    'fle-encrypted-fields'# The number of fields that CloudFront encrypted and forwarded to the origin. 
+    'fle-encrypted-fields'# The number of fields that CloudFront encrypted and forwarded to the origin. 
 )
 
 
@@ -45,24 +45,27 @@ def fetch_file(file, bucket):
     s3_client.download_file(bucket, file, save_to)
 
 
-def put_to_cloudwatch(name, data, timestamp, ctype="Count"):
+def put_to_cloudwatch(metrics, namespace=NAMESPACE):
     response = cw_client.put_metric_data(
         Namespace=NAMESPACE,
-        MetricData=[
-            {
+        MetricData=metrics
+    )
+
+
+def line_to_metric(name, data, timestamp, ctype="Count"):
+    metric = {
                 'MetricName': name,
                 'Timestamp': timestamp,
                 'Value': float(data),
                 'Unit': ctype,
                 'StorageResolution': 60
-            },
-        ]
-    )
+            }
+    return metric
 
 
 def parse_log_file(logfile, bucket):
     fetch_file(logfile, bucket)
-    lines = []
+    metrics = []
     rn = 1
     with gzip.open(save_to, 'rt') as logdata:
         result = csv.DictReader(logdata, fieldnames=CSV_FIELDS, dialect="excel-tab")
@@ -71,15 +74,13 @@ def parse_log_file(logfile, bucket):
                 date = row.pop('date')
                 row['timestamp'] = datetime.datetime.strptime(
                 date + " " + row.pop('time'), '%Y-%m-%d %H:%M:%S').isoformat()
-                lines.append(row)
-                # Puts x-edge-response-result-type with count 1 per access log line, afterwards to be picked up with SampleCount per timeframe
-                put_to_cloudwatch(row["x-edge-response-result-type"], 1, row['timestamp'])
-                # Puts time-taken value to be calculated as average/min/max afterwards
-                put_to_cloudwatch("time-taken", row["time-taken"], row['timestamp'])
+                if len(metrics) > 19:
+                    put_to_cloudwatch(metrics)
+                    metrics = []
+                metrics.append(line_to_metric(row["x-edge-response-result-type"], 1, row['timestamp']))
 
             rn = rn + 1
-    result = "Access log {0} originating from {1} with {2} lines was parsed and pushed to CloudWatch".format(logfile, bucket, rn)
-    return result
+    print("Access log {0} originating from {1} with {2} lines was parsed and pushed to CloudWatch".format(logfile, bucket, rn))
 
 
 def lambda_handler(event, context):
@@ -87,4 +88,4 @@ def lambda_handler(event, context):
     key = s3data["object"]["key"]
     bucket = s3data["bucket"]["name"]
     result = parse_log_file(key, bucket)
-    return result
+    return "Done"

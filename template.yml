@@ -12,6 +12,7 @@ Resources:
     Properties:
       Handler: app.lambda_handler
       Runtime: python3.6
+      MemorySize: 3008
       Timeout: 300
       Policies:
         - Version: '2012-10-17'
