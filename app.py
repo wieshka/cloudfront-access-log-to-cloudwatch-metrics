@@ -7,32 +7,32 @@ import os
 
 NAMESPACE = "CloudFront/Accesslogs"
 CSV_FIELDS = (
-    'date', # yyyy-mm-dd
-    'time', # hh:mm:ss UTC
-    'x-edge-location', # three-letter code and an arbitrarily assigned number, for example, DFW3. International Air Transport Association airport code
-    'sc-bytes', # total number of bytes that CloudFront served
-    'c-ip', # 192.0.2.183 or 2001:0db8:85a3:0000:0000:8a2e:0370:7334
-    'cs-method', # Method DELETE, GET, HEAD, OPTIONS, PATCH, POST, or PUT.
-    'cs(Host)', # The domain name of the CloudFront distribution, for example, d111111abcdef8.cloudfront.net.
-    'cs-uri-stem', # The portion of the URI that identifies the path and object, for example, /images/daily-ad.jpg.
-    'sc-status', # HTTP Status code: http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
-    'cs(Referer)', # The name of the domain that originated the request.
-    'cs(User-Agent)', # The value of the User-Agent header in the request. 
-    'cs-uri-query', # The query string portion of the URI, if any. (-)/hyphen for empty
-    'cs(Cookie)', # The cookie header in the request, including name-value pairs and the associated attributes.
-    'x-edge-result-type', # How CloudFront classifies the response after the last byte left the edge location. Hit / RefreshHit / Miss / LimitExceeded / CapacityExceeded / Error / Redirect
-    'x-edge-request-id', # An encrypted string that uniquely identifies a request.    
-    'x-host-header', # The value that the viewer included in the Host header for this request. This is the domain name in the request:
-    'cs-protocol', # The protocol that the viewer specified in the request, either http or https.
-    'cs-bytes', # The number of bytes of data that the viewer included in the request (client to server bytes), including headers.
-    'time-taken', # The number of seconds from request received -> last byte served. 
-    'x-forwarded-for', # X-Forwarded-For if used
-    'ssl-protocol', # SSLv3 / TLSv1 / TLSv1.1 / TLSv1.2 & (-) for http
-    'ssl-cipher', # SSL Cipher in use.
-    'x-edge-response-result-type', # How CloudFront classified the response just before returning the response to the viewer. Hit / RefreshHit / Miss / LimitExceeded / CapacityExceeded / Error / Redirect
-    'cs-protocol-version', # HTTP/0.9, HTTP/1.0, HTTP/1.1, and HTTP/2.0.
-    'fle-status', # When field-level encryption is configured for a distribution, a code that indicates whether the request body was successfully processed.
-    'fle-encrypted-fields'# The number of fields that CloudFront encrypted and forwarded to the origin. 
+    'date', #0 yyyy-mm-dd
+    'time', #1 hh:mm:ss UTC
+    'x-edge-location', #2 three-letter code and an arbitrarily assigned number, for example, DFW3. International Air Transport Association airport code
+    'sc-bytes', #3 total number of bytes that CloudFront served
+    'c-ip', #4 192.0.2.183 or 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+    'cs-method', #5 Method DELETE, GET, HEAD, OPTIONS, PATCH, POST, or PUT.
+    'cs(Host)', #6 The domain name of the CloudFront distribution, for example, d111111abcdef8.cloudfront.net.
+    'cs-uri-stem', #7 The portion of the URI that identifies the path and object, for example, /images/daily-ad.jpg.
+    'sc-status', #8 HTTP Status code: http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
+    'cs(Referer)', #9 The name of the domain that originated the request.
+    'cs(User-Agent)', #10 The value of the User-Agent header in the request. 
+    'cs-uri-query', #11 The query string portion of the URI, if any. (-)/hyphen for empty
+    'cs(Cookie)', #12 The cookie header in the request, including name-value pairs and the associated attributes.
+    'x-edge-result-type', #13 How CloudFront classifies the response after the last byte left the edge location. Hit / RefreshHit / Miss / LimitExceeded / CapacityExceeded / Error / Redirect
+    'x-edge-request-id', #14 An encrypted string that uniquely identifies a request.    
+    'x-host-header', #15 The value that the viewer included in the Host header for this request. This is the domain name in the request:
+    'cs-protocol', #16 The protocol that the viewer specified in the request, either http or https.
+    'cs-bytes', #17 The number of bytes of data that the viewer included in the request (client to server bytes), including headers.
+    'time-taken', #18 The number of seconds from request received -> last byte served. 
+    'x-forwarded-for', #19 X-Forwarded-For if used
+    'ssl-protocol', #20 SSLv3 / TLSv1 / TLSv1.1 / TLSv1.2 & (-) for http
+    'ssl-cipher', #21 SSL Cipher in use.
+    'x-edge-response-result-type', #22 How CloudFront classified the response just before returning the response to the viewer. Hit / RefreshHit / Miss / LimitExceeded / CapacityExceeded / Error / Redirect
+    'cs-protocol-version', #23 HTTP/0.9, HTTP/1.0, HTTP/1.1, and HTTP/2.0.
+    'fle-status', #24 When field-level encryption is configured for a distribution, a code that indicates whether the request body was successfully processed.
+    'fle-encrypted-fields' #25 The number of fields that CloudFront encrypted and forwarded to the origin. 
 )
 
 
@@ -68,16 +68,17 @@ def parse_log_file(logfile, bucket):
     metrics = []
     rn = 1
     with gzip.open(save_to, 'rt') as logdata:
-        result = csv.DictReader(logdata, fieldnames=CSV_FIELDS, dialect="excel-tab")
+        result = csv.reader(logdata, dialect="excel-tab")
         for row in result:
             if rn > 2:
-                date = row.pop('date')
-                row['timestamp'] = datetime.datetime.strptime(
-                date + " " + row.pop('time'), '%Y-%m-%d %H:%M:%S').isoformat()
+                date = row[0]
+                time = row[1]
+                timestamp = datetime.datetime.strptime(
+                date + " " + time, '%Y-%m-%d %H:%M:%S').isoformat()
                 if len(metrics) > 19:
                     put_to_cloudwatch(metrics)
                     metrics = []
-                metrics.append(line_to_metric(row["x-edge-response-result-type"], 1, row['timestamp']))
+                metrics.append(line_to_metric(row[22], 1, timestamp))
 
             rn = rn + 1
     print("Access log {0} originating from {1} with {2} lines was parsed and pushed to CloudWatch".format(logfile, bucket, rn))
