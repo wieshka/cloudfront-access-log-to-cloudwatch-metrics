@@ -13,7 +13,17 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.6
       Timeout: 300
-      Policies: AmazonS3ReadOnlyAccess
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 's3:GetObject'
+              Resource: 'arn:aws:s3:::*'
+            - Effect: Allow
+              Action:
+                - 'cloudwatch:PutMetricData'
+              Resource: '*'
       Events:
         S3FileListener:
           Type: S3

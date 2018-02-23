@@ -20,8 +20,8 @@ Features
 Install
 ----
 - Create bucket for code (CodeUri): `aws s3 mb s3://<bucket-name-where-code-should-be-stored>`
-- Upload code, generate CloudFormation: `sam package --template-file sam.yml --s3-bucket <bucket-name-where-code-should-be-stored> --output-template-file cloudformation.yml`
-- Deploy CloudFormation stack: `aws cloudformation deploy --template-file path/to/cloudformation.yml --stack-name <cf-stack-name> --capabilities CAPABILITY_NAMED_IAM`
+- Upload code, generate CloudFormation: `sam package --template-file template.yml --s3-bucket <bucket-name-where-code-should-be-stored> --output-template-file cloudformation.yml`
+- Deploy CloudFormation stack: `aws cloudformation deploy --template-file path/to/cloudformation.yml --stack-name <cf-stack-name> --capabilities CAPABILITY_IAM`
 
 
 Note
